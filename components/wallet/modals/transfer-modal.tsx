@@ -35,7 +35,7 @@ export function TransferModal({
   const { balances, isPrivateMode } = useWallet();
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
-  const [selectedToken, setSelectedToken] = useState("SOL");
+  const [selectedToken, setSelectedToken] = useState("ETH");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 

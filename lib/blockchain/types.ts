@@ -21,7 +21,7 @@ export interface Account {
   id: string;
   name: string;
   address: string;
-  publicKey: string; // Added for Solana operations
+  publicKey: string;
   color: string; // For avatar background
   isImported: boolean;
 }
@@ -36,7 +36,9 @@ export interface Transaction {
   to: string;
   status: "confirmed" | "pending" | "failed";
   fee?: number;
-  blockTime?: number;
+  gasLimit?: number;
+  gasPrice?: number;
+  nonce?: number;
 }
 
 export interface WalletState {

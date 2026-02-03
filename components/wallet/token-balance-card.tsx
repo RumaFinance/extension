@@ -17,7 +17,7 @@ export function TokenBalanceCard({ tokenBalance }: TokenBalanceCardProps) {
     <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors skeuomorphic-card">
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center overflow-hidden">
-          {token.symbol === "SOL" ? (
+          {token.symbol === "ETH" ? (
             <svg viewBox="0 0 397.7 311.7" className="h-6 w-6">
               <linearGradient
                 id="sol-gradient"

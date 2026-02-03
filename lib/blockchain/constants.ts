@@ -1,11 +1,11 @@
 import type { Token } from "./types";
 
-export const SOL_TOKEN: Token = {
-  symbol: "SOL",
-  name: "Solana",
-  mint: "So11111111111111111111111111111111111111112",
-  decimals: 9,
-  logoUrl: "/tokens/sol.svg",
+export const ETH_TOKEN: Token = {
+  symbol: "ETH",
+  name: "Ethereum",
+  mint: "0x0000000000000000000000000000000",
+  decimals: 18,
+  logoUrl: "/tokens/ETH.svg",
 };
 
 export const USDC_TOKEN: Token = {
@@ -16,7 +16,7 @@ export const USDC_TOKEN: Token = {
   logoUrl: "/tokens/usdc.svg",
 };
 
-export const SUPPORTED_TOKENS = [SOL_TOKEN, USDC_TOKEN];
+export const SUPPORTED_TOKENS = [ETH_TOKEN, USDC_TOKEN];
 
 // Price API endpoints
 export const COINGECKO_API = "https://api.coingecko.com/api/v3";

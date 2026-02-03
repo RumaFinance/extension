@@ -1,6 +1,6 @@
-import { SOL_TOKEN, USDC_TOKEN } from "./constants";
+import { ETH_TOKEN, USDC_TOKEN } from "./constants";
 import type { Transaction } from "./types";
-import bs58 from "bs58";
+import { ethers } from "ethers";
 
 const FALLBACK_RPC_URLS = [
   "wss://ethereum-rpc.publicnode.com", // Ethereum public mainnet rpc
@@ -51,45 +51,35 @@ async function rpcCall<T>(method: string, params: unknown[]): Promise<T> {
   throw lastError || new Error("All RPC endpoints failed");
 }
 
-export async function getSolBalance(address: string): Promise<number> {
+export async function getEthBalance(address: string): Promise<number> {
   try {
-    const result = await rpcCall<{ value: number }>("getBalance", [address]);
-    return result.value / 1e9; // Convert lamports to SOL
+    const result = await rpcCall<string>("eth_getBalance", [address, "latest"]);
+    return parseInt(result, 16) / 1e18;
   } catch (error) {
-    console.error("Failed to get SOL balance:", error);
+    console.error("Failed to get ETH balance:", error);
     return 0;
   }
 }
 
 export async function getTokenBalance(
   address: string,
-  mintAddress: string,
+  tokenAddress: string,
 ): Promise<number> {
   try {
-    const result = await rpcCall<{
-      value: Array<{
-        account: {
-          data: {
-            parsed: {
-              info: {
-                tokenAmount: {
-                  uiAmount: number;
-                };
-              };
-            };
-          };
-        };
-      }>;
-    }>("getTokenAccountsByOwner", [
-      address,
-      { mint: mintAddress },
-      { encoding: "jsonParsed" },
+    // Use standard ERC20 ABI for balanceOf
+    const abi = ["function balanceOf(address) view returns (uint256)"];
+    const iface = new ethers.Interface(abi);
+    const data = iface.encodeFunctionData("balanceOf", [address]);
+
+    const result = await rpcCall<string>("eth_call", [
+      {
+        to: tokenAddress,
+        data: data,
+      },
+      "latest",
     ]);
 
-    if (result.value && result.value.length > 0) {
-      return result.value[0].account.data.parsed.info.tokenAmount.uiAmount || 0;
-    }
-    return 0;
+    return parseInt(result, 16) / 1e6;
   } catch (error) {
     console.error("Failed to get token balance:", error);
     return 0;
@@ -98,12 +88,12 @@ export async function getTokenBalance(
 
 export async function getAllBalances(
   address: string,
-): Promise<{ sol: number; usdc: number }> {
-  const [sol, usdc] = await Promise.all([
-    getSolBalance(address),
+): Promise<{ eth: number; usdc: number }> {
+  const [eth, usdc] = await Promise.all([
+    getEthBalance(address),
     getTokenBalance(address, USDC_TOKEN.mint),
   ]);
-  return { sol, usdc };
+  return { eth, usdc };
 }
 
 export async function getTransactions(
@@ -111,124 +101,51 @@ export async function getTransactions(
   limit = 10,
 ): Promise<Transaction[]> {
   try {
-    const signatures = await rpcCall<
+    const txs = await rpcCall<
       Array<{
-        signature: string;
-        blockTime: number | null;
-        err: unknown;
+        hash: string;
+        blockNumber: string;
+        from: string;
+        to: string;
+        value: string;
+        gas: string;
+        gasPrice: string;
+        input: string;
+        timestamp: number;
       }>
-    >("getSignaturesForAddress", [address, { limit }]);
+    >("eth_getTransactionByAddress", [address, limit]);
 
-    if (!signatures || signatures.length === 0) {
+    if (!txs || txs.length === 0) {
       return [];
     }
 
-    const transactions: Transaction[] = [];
-
-    for (const sig of signatures.slice(0, limit)) {
-      try {
-        const tx = await rpcCall<{
-          blockTime: number | null;
-          meta: {
-            preBalances: number[];
-            postBalances: number[];
-            err: unknown;
-          } | null;
-          transaction: {
-            message: {
-              accountKeys: string[];
-            };
-          };
-        } | null>("getTransaction", [
-          sig.signature,
-          { encoding: "json", maxSupportedTransactionVersion: 0 },
-        ]);
-
-        if (tx && tx.meta) {
-          const accountKeys = tx.transaction.message.accountKeys;
-          const preBalances = tx.meta.preBalances;
-          const postBalances = tx.meta.postBalances;
-
-          const addressIndex = accountKeys.findIndex(
-            (key: string) => key === address,
-          );
-
-          if (addressIndex !== -1) {
-            const balanceChange =
-              (postBalances[addressIndex] - preBalances[addressIndex]) / 1e9;
-            const isReceive = balanceChange > 0;
-
-            transactions.push({
-              signature: sig.signature,
-              timestamp:
-                (tx.blockTime || sig.blockTime || Date.now() / 1000) * 1000,
-              type: isReceive ? "receive" : "send",
-              amount: Math.abs(balanceChange),
-              token: SOL_TOKEN,
-              from: isReceive
-                ? accountKeys[0] !== address
-                  ? accountKeys[0]
-                  : accountKeys[1] || address
-                : address,
-              to: isReceive ? address : accountKeys[1] || accountKeys[0],
-              status: sig.err ? "failed" : "confirmed",
-              fee:
-                tx.meta.preBalances[0] - tx.meta.postBalances[0] > 0
-                  ? 0.000005
-                  : undefined,
-              blockTime: tx.blockTime || undefined,
-            });
-          }
-        }
-      } catch (txError) {
-        console.error("Failed to fetch transaction:", sig.signature, txError);
-      }
-    }
-
-    return transactions;
+    return txs.map((tx) => ({
+      signature: tx.hash,
+      timestamp: tx.timestamp * 1000,
+      type:
+        tx.from.toLowerCase() === address.toLowerCase() ? "send" : "receive",
+      amount: parseInt(tx.value, 16) / 1e18,
+      token: ETH_TOKEN,
+      from: tx.from,
+      to: tx.to,
+      status: "confirmed",
+      fee: (parseInt(tx.gas, 16) * parseInt(tx.gasPrice, 16)) / 1e18,
+    }));
   } catch (error) {
     console.error("Failed to get transactions:", error);
     return [];
   }
 }
 
-export function isValidSolanaAddress(address: string): boolean {
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-  return base58Regex.test(address);
+export function isValidEvmAddress(address: string): boolean {
+  return ethers.isAddress(address);
 }
 
-export async function sendSignedTransaction(signedTx: Transaction) {
-  const serializedTx = signedTx.serialize();
-  const txBase58 = bs58.encode(serializedTx);
-
-  // Send via RPC
-  const result = await rpcCall<{ signature: string }>("sendTransaction", [
-    txBase58,
-  ]);
-  return result.signature;
+export async function sendSignedTransaction(signedTx: string) {
+  return await rpcCall<string>("eth_sendRawTransaction", [signedTx]);
 }
 
 export async function fetchRecentBlockhash() {
-  const primaryUrl = getRpcUrl();
-  const response = await fetch(`${primaryUrl}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "getLatestBlockhash",
-      params: [],
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  if (data.error) {
-    throw new Error(data.error.message || "RPC error");
-  }
-
-  return data.result.value.blockhash;
+  const blockNumber = await rpcCall<string>("eth_blockNumber", []);
+  return blockNumber;
 }
