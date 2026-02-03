@@ -107,10 +107,7 @@ async function deriveKeypairFromMnemonic(
 ): Promise<string> {
   // Use bip39 to convert mnemonic to seed
   const seed = bip39.mnemonicToSeedSync(mnemonic);
-  const wallet = ethers.Wallet.fromMnemonic(
-    mnemonic,
-    `m/44'/60'/0'/0/${accountIndex}`,
-  );
+  const wallet = ethers.Wallet.fromPhrase(seed.toString());
   return wallet.privateKey;
 }
 
