@@ -25,7 +25,6 @@ import { getRandomColor, generateAccountId } from "@/lib/blockchain/utils";
 import {
   getAllBalances,
   getTransactions as fetchEthereumTransactions,
-  fetchRecentBlockhash,
 } from "@/lib/blockchain/ethereum-client";
 import * as bip39 from "bip39";
 
@@ -101,19 +100,18 @@ async function storeKeypair(
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-async function deriveKeypairFromMnemonic(
-  mnemonic: string,
-  accountIndex = 0,
-): Promise<string> {
-  // Use bip39 to convert mnemonic to seed
-  const seed = bip39.mnemonicToSeedSync(mnemonic);
-  const wallet = ethers.Wallet.fromPhrase(seed.toString());
-  return wallet.privateKey;
-}
+async function deriveKeypairFromMnemonic(mnemonic: string): Promise<string> {
+  // Trim whitespace and normalize the mnemonic
+  const trimmedMnemonic = mnemonic.trim().toLowerCase();
 
-// Create keypair from private key (base58 encoded)
-function keypairFromPrivateKey(privateKey: string): string {
-  return privateKey;
+  // Validate mnemonic length and format
+  if (!bip39.validateMnemonic(trimmedMnemonic)) {
+    throw new Error("Invalid mnemonic phrase");
+  }
+
+  // Use bip39 to convert mnemonic to seed
+  const wallet = ethers.Wallet.fromPhrase(trimmedMnemonic);
+  return wallet.privateKey;
 }
 
 export function WalletProvider({ children }: { children: ReactNode }) {

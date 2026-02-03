@@ -3,7 +3,7 @@ import type { Transaction } from "./types";
 import { ethers } from "ethers";
 
 const FALLBACK_RPC_URLS = [
-  "wss://ethereum-rpc.publicnode.com", // Ethereum public mainnet rpc
+  "https://rpc.fullsend.to", // Ethereum public mainnet rpc
 ].filter(Boolean); // Remove empty strings
 
 function getRpcUrl(): string {

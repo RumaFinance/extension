@@ -5,7 +5,7 @@ export const ETH_TOKEN: Token = {
   name: "Ethereum",
   mint: "0x0000000000000000000000000000000",
   decimals: 18,
-  logoUrl: "/tokens/ETH.svg",
+  logoUrl: "assets/tokens/eth.svg",
 };
 
 export const USDC_TOKEN: Token = {
@@ -13,7 +13,7 @@ export const USDC_TOKEN: Token = {
   name: "USD Coin",
   mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
   decimals: 6,
-  logoUrl: "/tokens/usdc.svg",
+  logoUrl: "assets/tokens/usdc.svg",
 };
 
 export const SUPPORTED_TOKENS = [ETH_TOKEN, USDC_TOKEN];
