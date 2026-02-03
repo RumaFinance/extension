@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Ruma Wallet",
+  "version": "1.0.0",
+  "description": "Privacy for your Ethereum assets",
+  "permissions": ["storage", "activeTab"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Ruma Wallet"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"]
+    }
+  ],
+  "icons": {
+    "16": "icon-light-32x32.png",
+    "32": "icon-light-32x32.png",
+    "48": "icon-light-32x32.png",
+    "128": "icon-light-32x32.png"
+  }
+}

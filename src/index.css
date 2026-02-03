@@ -1,0 +1,232 @@
+@import "tailwindcss";
+
+/* --- Base Variables (Skeuomorphic Light) --- */
+:root {
+    --background: #f8f9fa; /* Off-white with subtle texture */
+    --foreground: #2d3748; /* Dark slate for readability */
+    --card: #ffffff; /* Pure white for cards */
+    --card-foreground: #2d3748;
+    --popover: #f8f9fa; /* Match background for popovers */
+    --popover-foreground: #2d3748;
+    --primary: #3b82f6; /* Soft blue with gradient */
+    --primary-foreground: #ffffff;
+    --secondary: #e2e8f0; /* Light gray for secondary */
+    --secondary-foreground: #2d3748;
+    --muted: #cbd5e0; /* Lighter gray for muted text */
+    --muted-foreground: #4a5568;
+    --accent: #38bdf8; /* Brighter blue for accents */
+    --accent-foreground: #ffffff;
+    --destructive: #ef4444; /* Red for errors */
+    --destructive-foreground: #ffffff;
+    --border: #e2e8f0; /* Light gray for borders */
+    --input: #ffffff; /* White for inputs */
+    --ring: #3b82f6; /* Blue ring for focus */
+    --radius: 0.5rem; /* Softer rounded corners */
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Subtle shadow */
+    --shadow-inner: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Inner shadow for depth */
+    --chart-1: #3b82f6;
+    --chart-2: #1d4ed8;
+    --chart-3: #60a5fa;
+    --chart-4: #34d399;
+    --chart-5: #fbbf24;
+    --sidebar: #f1f5f9; /* Lighter sidebar */
+    --sidebar-foreground: #2d3748;
+    --sidebar-primary: #3b82f6;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #e2e8f0;
+    --sidebar-accent-foreground: #2d3748;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #3b82f6;
+}
+
+/* --- Light Private Theme (Grey/Black Contrast) --- */
+.light-private {
+    --background: #f0f0f0; /* Off-white with subtle texture */
+    --foreground: #000000;
+    --card: #ffffff; /* Pure white for cards */
+    --card-foreground: #000000;
+    --popover: #f0f0f0; /* Match background */
+    --popover-foreground: #000000;
+    --primary: #2d3748; /* Dark slate for primary */
+    --primary-foreground: #ffffff;
+    --secondary: #d1d5db; /* Light gray for secondary */
+    --secondary-foreground: #000000;
+    --muted: #9ca3af; /* Lighter gray for muted text */
+    --muted-foreground: #000000;
+    --accent: #1e40af; /* Dark blue for accents */
+    --accent-foreground: #ffffff;
+    --destructive: #991b1b; /* Dark red for errors */
+    --destructive-foreground: #ffffff;
+    --border: #d1d5db; /* Light gray for borders */
+    --input: #ffffff; /* White for inputs */
+    --ring: #1e4;
+}
+
+/* --- Dark Public Theme (Current Dark) --- */
+.dark {
+    --background: #1a1a1a; /* Dark slate */
+    --foreground: #e2e8f0; /* Light gray for readability */
+    --card: #2a2a2a; /* Slightly lighter card */
+    --card-foreground: #e2e8f0;
+    --popover: #2a2a2a; /* Match card */
+    --popover-foreground: #e2e8f0;
+    --primary: #3b82f6; /* Soft blue */
+    --primary-foreground: #1a1a1a;
+    --secondary: #374151; /* Darker gray for secondary */
+    --secondary-foreground: #e2e8f0;
+    --muted: #4b5563; /* Muted gray */
+    --muted-foreground: #9ca3af;
+    --accent: #60a5fa; /* Brighter blue for accents */
+    --accent-foreground: #1a1a1a;
+    --destructive: #ef4444; /* Red for errors */
+    --destructive-foreground: #1a1a1a;
+    --border: #374151; /* Dark gray for borders */
+    --input: #2a2a2a; /* Darker input */
+    --ring: #3b82f6; /* Blue ring for focus */
+}
+
+/* --- Dark Private Theme (High-Contrast Black) --- */
+.dark-private {
+    --background: #0a0a0a; /* Almost black */
+    --foreground: #f8f9fa; /* Off-white for readability */
+    --card: #1a1a1a; /* Slightly lighter card */
+    --card-foreground: #f8f9fa;
+    --popover: #1a1a1a; /* Match card */
+    --popover-foreground: #f8f9fa;
+    --primary: #f8f9fa; /* Off-white for primary */
+    --primary-foreground: #0a0a0a;
+    --secondary: #374151; /* Dark gray for secondary */
+    --secondary-foreground: #f8f9fa;
+    --muted: #4b5563; /* Muted gray */
+    --muted-foreground: #9ca3af;
+    --accent: #60a5fa; /* Brighter blue for accents */
+    --accent-foreground: #0a0a0a;
+    --destructive: #ef4444; /* Red for errors */
+    --destructive-foreground: #0a0a0a;
+    --border: #374151; /* Dark gray for borders */
+    --input: #1a1a1a; /* Darker input */
+    --ring: #60a5fa; /* Blue ring for focus */
+}
+
+@theme inline {
+    --font-sans: "Geist", "Geist Fallback";
+    --font-mono: "Geist Mono", "Geist Mono Fallback";
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --radius-sm: calc(var(--radius) - 2px);
+    --radius-md: var(--radius);
+    --radius-lg: calc(var(--radius) + 2px);
+    --radius-xl: calc(var(--radius) + 4px);
+    --shadow: var(--shadow);
+    --shadow-inner: var(--shadow-inner);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+    button,
+    [data-slot="switch-thumb"] {
+        @apply border-border outline-none;
+        box-shadow: var(--shadow);
+    }
+    button {
+        cursor: pointer;
+    }
+    body {
+        @apply bg-background text-foreground;
+        background-image: linear-gradient(
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.1)
+        );
+        background-size: 20px 20px;
+        background-position:
+            0 0,
+            10px 10px;
+    }
+    /* Skeuomorphic depth effects */
+    .skeuomorphic-card {
+        @apply bg-card rounded-lg shadow-md;
+        box-shadow: var(--shadow-inner), var(--shadow);
+        border: 1px solid var(--border);
+        border-image: linear-gradient(
+            to bottom,
+            transparent,
+            rgba(0, 0, 0, 0.1)
+        );
+    }
+    .skeuomorphic-input {
+        @apply bg-input rounded-md shadow-sm;
+        box-shadow: var(--shadow-inner), var(--shadow);
+        border: 1px solid var(--border);
+        border-image: linear-gradient(
+            to bottom,
+            transparent,
+            rgba(0, 0, 0, 0.1)
+        );
+    }
+}
+
+/* Skeuomorphic wallet extension */
+.wallet-extension {
+    width: 360px;
+    max-height: 100vh;
+    overflow: hidden;
+    border: 1px solid #d1d5db;
+    border-image: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.1));
+}
+
+/* Skeuomorphic scrollbar */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Optional: Add subtle texture to backgrounds */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(
+            circle at 10% 20%,
+            rgba(255, 255, 255, 0.05) 0.5px,
+            transparent 1px
+        ),
+        radial-gradient(
+            circle at 90% 80%,
+            rgba(255, 255, 255, 0.05) 0.5px,
+            transparent 1px
+        );
+    pointer-events: none;
+    z-index: -1;
+}

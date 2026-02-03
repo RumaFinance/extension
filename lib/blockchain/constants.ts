@@ -1,0 +1,42 @@
+import type { Token } from "./types";
+
+export const SOL_TOKEN: Token = {
+  symbol: "SOL",
+  name: "Solana",
+  mint: "So11111111111111111111111111111111111111112",
+  decimals: 9,
+  logoUrl: "/tokens/sol.svg",
+};
+
+export const USDC_TOKEN: Token = {
+  symbol: "USDC",
+  name: "USD Coin",
+  mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  decimals: 6,
+  logoUrl: "/tokens/usdc.svg",
+};
+
+export const SUPPORTED_TOKENS = [SOL_TOKEN, USDC_TOKEN];
+
+// Price API endpoints
+export const COINGECKO_API = "https://api.coingecko.com/api/v3";
+
+// Account avatar colors
+export const AVATAR_COLORS = [
+  "#1144ec",
+  "#11b2ed",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899",
+  "#06b6d4",
+  "#84cc16",
+  "#f97316",
+  "#6366f1",
+  "#14b8a6",
+];
+
+// Onboarding storage key
+export const ONBOARDING_COMPLETE_KEY = "ruma_wallet_onboarding_complete";
+export const WALLET_STATE_KEY = "ruma_wallet_state";
