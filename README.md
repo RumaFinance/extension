@@ -26,4 +26,4 @@ We tailored Ruma for humans, making the design super simple, familiar, and easy 
 ## Contact
 
 - Daniel at dani3.a@proton.me
-- Temcen at EMAIL
+- Temcen at nleclan98@gmail.com
