@@ -68,6 +68,7 @@ export default defineConfig({
         { from: "public/manifest.json", to: "manifest.json" },
         { from: "public/*.png", to: "[name][ext]" },
         { from: "public/*.svg", to: "[name][ext]" },
+        { from: "public/assets/tokens/*.svg", to: "assets/tokens/[name][ext]" },
         {
           from: "public/wasm/settler_wasm_bg.wasm",
           to: "wasm/settler_wasm_bg.wasm",
