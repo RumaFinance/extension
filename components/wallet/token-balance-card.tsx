@@ -19,6 +19,8 @@ export function TokenBalanceCard({ tokenBalance }: TokenBalanceCardProps) {
         <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center overflow-hidden">
           <img
             src={token.logoUrl}
+            alt={token.symbol}
+            className="h-full w-full object-contain"
             onError={(e) => {
               console.error("Image load error:", {
                 src: token.logoUrl,
