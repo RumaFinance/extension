@@ -3,7 +3,8 @@ import type { Transaction } from "./types";
 import { ethers } from "ethers";
 
 const FALLBACK_RPC_URLS = [
-  "https://rpc.fullsend.to", // Ethereum public mainnet rpc
+  "https://ethereum-sepolia-rpc.publicnode.com",
+  "https://eth-sepolia.api.onfinality.io/public",
 ].filter(Boolean); // Remove empty strings
 
 function getRpcUrl(): string {
@@ -91,46 +92,78 @@ export async function getAllBalances(
 ): Promise<{ eth: number; usdc: number }> {
   const [eth, usdc] = await Promise.all([
     getEthBalance(address),
-    getTokenBalance(address, USDC_TOKEN.mint),
+    getTokenBalance(address, USDC_TOKEN.address),
   ]);
   return { eth, usdc };
+}
+
+async function getOneYearBlockHexes(): Promise<[string, string]> {
+  // Estimate the number of blocks in a year (365 days)
+  const secondsInYear = 30 * 24 * 60 * 60;
+  const averageBlockTime = 15; // seconds
+  const blocksInYear = Math.floor(secondsInYear / averageBlockTime);
+
+  // Get the current block number
+  const currentBlock = parseInt(
+    await rpcCall<string>("eth_blockNumber", []),
+    16,
+  );
+
+  // Determine the block number one year ago
+  const yearAgoBlock = currentBlock - blocksInYear;
+  const yearAgoBlockHex = `0x${yearAgoBlock.toString(16)}`;
+  const currentBlockHex = `0x${currentBlock.toString(16)}`;
+  return [yearAgoBlockHex, currentBlockHex];
 }
 
 export async function getTransactions(
   address: string,
   limit = 10,
 ): Promise<Transaction[]> {
-  try {
-    const txs = await rpcCall<
-      Array<{
-        hash: string;
-        blockNumber: string;
-        from: string;
-        to: string;
-        value: string;
-        gas: string;
-        gasPrice: string;
-        input: string;
-        timestamp: number;
-      }>
-    >("eth_getTransactionByAddress", [address, limit]);
+  const transactions: Transaction[] = [];
 
-    if (!txs || txs.length === 0) {
-      return [];
+  const [yearAgoBlockHex, currentBlockHex] = await getOneYearBlockHexes();
+
+  try {
+    const logs = await rpcCall<
+      Array<{
+        address: string;
+        blockNumber: string;
+        transactionHash: string;
+        data: string;
+        topics: string[];
+      }>
+    >("eth_getLogs", [
+      {
+        address: address,
+        fromBlock: yearAgoBlockHex, // Block number one year ago
+        toBlock: currentBlockHex,
+      },
+    ]);
+
+    if (logs && logs.length > 0) {
+      logs.forEach((log) => {
+        if (
+          log.transactionHash &&
+          log.address.toLowerCase() === address.toLowerCase()
+        ) {
+          transactions.push({
+            signature: log.transactionHash,
+            timestamp: parseInt(log.blockNumber, 16) * 1000, // Requires fetching the timestamp from the block
+            type: log.topics[0] === address.toLowerCase() ? "receive" : "send",
+            amount: parseInt(log.data, 16) / 1e18,
+            token: ETH_TOKEN,
+            from: log.address,
+            to: address,
+            status: "confirmed",
+            fee: 0, // Calculate fee if required
+          });
+        }
+      });
     }
 
-    return txs.map((tx) => ({
-      signature: tx.hash,
-      timestamp: tx.timestamp * 1000,
-      type:
-        tx.from.toLowerCase() === address.toLowerCase() ? "send" : "receive",
-      amount: parseInt(tx.value, 16) / 1e18,
-      token: ETH_TOKEN,
-      from: tx.from,
-      to: tx.to,
-      status: "confirmed",
-      fee: (parseInt(tx.gas, 16) * parseInt(tx.gasPrice, 16)) / 1e18,
-    }));
+    // Return the latest transactions in chronological order, limited by the specified amount
+    return transactions.slice(-limit).reverse();
   } catch (error) {
     console.error("Failed to get transactions:", error);
     return [];
