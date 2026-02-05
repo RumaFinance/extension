@@ -3,7 +3,7 @@ import type { Token } from "./types";
 export const ETH_TOKEN: Token = {
   symbol: "ETH",
   name: "Ethereum",
-  mint: "0x0000000000000000000000000000000",
+  address: "0x0000000000000000000000000000000",
   decimals: 18,
   logoUrl: "assets/tokens/eth.svg",
 };
@@ -11,7 +11,7 @@ export const ETH_TOKEN: Token = {
 export const USDC_TOKEN: Token = {
   symbol: "USDC",
   name: "USD Coin",
-  mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  address: "0x3600000000000000000000000000000000000000",
   decimals: 6,
   logoUrl: "assets/tokens/usdc.svg",
 };

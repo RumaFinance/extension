@@ -20,6 +20,7 @@ import {
   USDC_TOKEN,
   WALLET_STATE_KEY,
   ONBOARDING_COMPLETE_KEY,
+  SUPPORTED_TOKENS,
 } from "@/lib/blockchain/constants";
 import { getRandomColor, generateAccountId } from "@/lib/blockchain/utils";
 import {
@@ -156,29 +157,43 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   // Fetch real balances from mainnet and shadowwire (private mode)
   const refreshBalances = useCallback(async () => {
     if (!activeAccount) {
-      setBalances([
-        { token: ETH_TOKEN, balance: 0, usdValue: 0 },
-        { token: USDC_TOKEN, balance: 0, usdValue: 0 },
-      ]);
+      setBalances(
+        SUPPORTED_TOKENS.map((token) => ({
+          token,
+          balance: 0,
+          usdValue: 0,
+        })),
+      );
       return;
     }
 
     setIsLoading(true);
     try {
-      let eth: number = 0;
-      let usdc: number = 0;
+      // Initialize balances for all supported tokens
+      const initialBalances: Record<
+        string,
+        { balance: number; usdValue: number }
+      > = {};
+      SUPPORTED_TOKENS.forEach((token) => {
+        initialBalances[token.address] = { balance: 0, usdValue: 0 };
+      });
 
       // First fetch private balances if in private mode
       if (state.isPrivateMode) {
-        eth = 0;
-        usdc = 0;
+        // Private mode balances remain 0 for all tokens (for now)
       }
 
       // Only fetch mainnet balances if not in private mode
       if (!state.isPrivateMode) {
         const mainnetBalances = await getAllBalances(activeAccount.address);
-        eth = mainnetBalances.eth || eth; // Fallback to private if mainnet fails
-        usdc = mainnetBalances.usdc || usdc; // Fallback to private if mainnet fails
+        // Update balances only for supported tokens
+        SUPPORTED_TOKENS.forEach((token) => {
+          if (token.address === ETH_TOKEN.address) {
+            initialBalances[token.address].balance = mainnetBalances.eth || 0;
+          } else if (token.address === USDC_TOKEN.address) {
+            initialBalances[token.address].balance = mainnetBalances.usdc || 0;
+          }
+        });
       }
 
       // Fetch prices from CoinGecko
@@ -196,16 +211,34 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         // Price fetch failed, use defaults
       }
 
-      setBalances([
-        { token: ETH_TOKEN, balance: eth, usdValue: eth * ethPrice },
-        { token: USDC_TOKEN, balance: usdc, usdValue: usdc * usdcPrice },
-      ]);
+      // Calculate USD values and create final balances array
+      const finalBalances = SUPPORTED_TOKENS.map((token) => {
+        const balance = initialBalances[token.address].balance;
+        let usdValue = 0;
+
+        if (token.address === ETH_TOKEN.address) {
+          usdValue = balance * ethPrice;
+        } else if (token.address === USDC_TOKEN.address) {
+          usdValue = balance * usdcPrice;
+        }
+
+        return {
+          token,
+          balance,
+          usdValue,
+        };
+      });
+
+      setBalances(finalBalances);
     } catch (error) {
       console.error("Failed to fetch balances:", error);
-      setBalances([
-        { token: ETH_TOKEN, balance: 0, usdValue: 0 },
-        { token: USDC_TOKEN, balance: 0, usdValue: 0 },
-      ]);
+      setBalances(
+        SUPPORTED_TOKENS.map((token) => ({
+          token,
+          balance: 0,
+          usdValue: 0,
+        })),
+      );
     } finally {
       setIsLoading(false);
     }

@@ -6,7 +6,7 @@ export type ChainType = "evm" | "solana";
 export interface Token {
   symbol: string;
   name: string;
-  mint: string; // contract address for EVM
+  address: string;
   decimals: number;
   logoUrl: string;
 }
