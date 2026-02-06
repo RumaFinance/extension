@@ -11,7 +11,7 @@ export const ETH_TOKEN: Token = {
 export const USDC_TOKEN: Token = {
   symbol: "USDC",
   name: "USD Coin",
-  address: "0x3600000000000000000000000000000000000000",
+  address: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
   decimals: 6,
   logoUrl: "assets/tokens/usdc.svg",
 };

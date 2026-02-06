@@ -3,9 +3,13 @@
 import { Loader2 } from "lucide-react";
 import { TokenBalanceCard } from "./token-balance-card";
 import { useWallet } from "@/contexts/wallet-context";
+import { useBalances } from "@/hooks/use-balances";
 
 export function BalanceList() {
-  const { balances, isLoading } = useWallet();
+  const { activeAccount, isLoading } = useWallet();
+  const { balances } = useBalances({
+    address: activeAccount?.address || "",
+  });
 
   return (
     <div className="flex flex-col gap-3 px-4">

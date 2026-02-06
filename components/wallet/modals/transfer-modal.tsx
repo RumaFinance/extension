@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useWallet } from "@/contexts/wallet-context";
 import { formatBalance } from "@/lib/blockchain/utils";
+import { useBalances } from "@/hooks/use-balances";
 
 interface TransferModalProps {
   open: boolean;
@@ -32,7 +33,10 @@ export function TransferModal({
   onOpenChange,
   onSuccess,
 }: TransferModalProps) {
-  const { balances, isPrivateMode } = useWallet();
+  const { activeAccount, isPrivateMode } = useWallet();
+  const { balances } = useBalances({
+    address: activeAccount?.address || "",
+  });
   const [recipient, setRecipient] = useState("");
   const [amount, setAmount] = useState("");
   const [selectedToken, setSelectedToken] = useState("ETH");
