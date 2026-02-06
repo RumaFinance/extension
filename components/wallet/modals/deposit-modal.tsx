@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Copy, Check, QrCode } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Copy, Check } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/wallet-context";
+import { useTheme } from "next-themes";
+import { useBalances } from "@/hooks/use-balances";
 
 interface DepositModalProps {
   open: boolean;
@@ -17,8 +20,12 @@ interface DepositModalProps {
 }
 
 export function DepositModal({ open, onOpenChange }: DepositModalProps) {
-  const { activeAccount, refreshBalances } = useWallet();
+  const { activeAccount } = useWallet();
+  const { refetchBalances } = useBalances({
+    address: activeAccount?.address || "",
+  });
   const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
 
   const handleCopy = async () => {
     if (activeAccount) {
@@ -30,7 +37,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
 
   const refreshBalanceIfClosed = () => {
     if (open) {
-      refreshBalances;
+      refetchBalances();
     }
     onOpenChange(!open);
   };
@@ -49,9 +56,14 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
             Send SOL or USDC to this address to deposit into your wallet.
           </p>
 
-          {/* QR Code Placeholder */}
+          {/* Dynamic QR Code */}
           <div className="h-48 w-48 rounded-xl bg-secondary flex items-center justify-center">
-            <QrCode className="h-24 w-24 text-muted-foreground" />
+            <QRCodeSVG
+              value={activeAccount.address}
+              size={192}
+              marginSize={3}
+              level="H"
+            />
           </div>
 
           <div className="w-full p-3 rounded-xl bg-secondary">

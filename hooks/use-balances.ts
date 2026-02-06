@@ -14,6 +14,7 @@ interface useBalancesProperties {
 interface useBalancesReturn {
   balances: TokenBalance[];
   totalBalance: number;
+  refetchBalances: () => void;
 }
 
 export const useBalances = ({
@@ -45,6 +46,7 @@ export const useBalances = ({
     data: balancesData,
     isError,
     isLoading,
+    refetch,
   } = useQuery({
     queryKey: ["balances", address, tokenPrices],
     queryFn: async () => {
@@ -84,15 +86,16 @@ export const useBalances = ({
 
   if (isError) {
     console.error("Error fetching balances:", isError);
-    return { balances: [], totalBalance: 0 };
+    return { balances: [], totalBalance: 0, refetchBalances: refetch };
   }
 
   if (isLoading) {
-    return { balances: [], totalBalance: 0 };
+    return { balances: [], totalBalance: 0, refetchBalances: refetch };
   }
 
   return {
     balances: balancesData?.balances || [],
     totalBalance: balancesData?.totalBalance || 0,
+    refetchBalances: refetch,
   };
 };
