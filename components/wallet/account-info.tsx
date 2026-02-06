@@ -7,18 +7,32 @@ import { Input } from "@/components/ui/input";
 import { AccountAvatar } from "./account-avatar";
 import { useWallet } from "@/contexts/wallet-context";
 import { truncateAddressSimple } from "@/lib/blockchain/utils";
+import { useQuery } from "@tanstack/react-query";
+import { formatUsdValue } from "@/lib/blockchain/utils";
 
 interface AccountInfoProps {
   onAccountSelectorClick: () => void;
 }
 
 export function AccountInfo({ onAccountSelectorClick }: AccountInfoProps) {
-  const { activeAccount, updateAccountName } = useWallet();
+  const { activeAccount, updateAccountName, balances } = useWallet();
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState("");
   const [copied, setCopied] = useState(false);
 
   if (!activeAccount) return null;
+
+  const fetchTotalUsdValue = async (): Promise<number> => {
+    if (!activeAccount) return 0;
+    return balances.reduce((sum, balance) => sum + balance.usdValue, 0);
+  };
+
+  const { data: totalUsdValue, refetch } = useQuery({
+    queryKey: ["accountTotalUsdValue", activeAccount?.id],
+    queryFn: fetchTotalUsdValue,
+    refetchInterval: 10000, // 30 seconds
+    enabled: !!activeAccount,
+  });
 
   const handleCopyAddress = async () => {
     await navigator.clipboard.writeText(activeAccount.address);
@@ -99,7 +113,7 @@ export function AccountInfo({ onAccountSelectorClick }: AccountInfoProps) {
       {/* Address with Copy and Account Selector */}
       <div className="flex items-center gap-1">
         <code className="text-sm text-muted-foreground font-mono">
-          {truncateAddressSimple(activeAccount.address, 6)}
+          {truncateAddressSimple(activeAccount.address)}
         </code>
         <Button
           variant="ghost"
@@ -123,6 +137,15 @@ export function AccountInfo({ onAccountSelectorClick }: AccountInfoProps) {
         >
           <ChevronDown className="h-4 w-4" />
         </Button>
+      </div>
+
+      {/* Total USD Value */}
+      <div className="flex">
+        <span className="text-4xl font-semibold">
+          {totalUsdValue !== undefined
+            ? formatUsdValue(totalUsdValue)
+            : "Loading..."}
+        </span>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ export function truncateAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars + 4)}...${address.slice(-chars)}`;
 }
 
-export function truncateAddressSimple(address: string, chars = 4): string {
+export function truncateAddressSimple(address: string, chars = 6): string {
   if (!address) return "";
   return `${address.slice(2, chars + 2)}`;
 }
