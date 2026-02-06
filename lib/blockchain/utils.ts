@@ -2,7 +2,12 @@ import { AVATAR_COLORS } from "./constants";
 
 export function truncateAddress(address: string, chars = 4): string {
   if (!address) return "";
-  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
+  return `${address.slice(0, chars + 4)}...${address.slice(-chars)}`;
+}
+
+export function truncateAddressSimple(address: string, chars = 4): string {
+  if (!address) return "";
+  return `${address.slice(2, chars + 2)}`;
 }
 
 export function formatBalance(balance: number, decimals = 4): string {

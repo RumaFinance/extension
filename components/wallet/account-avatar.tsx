@@ -1,19 +1,23 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface AccountAvatarProps {
-  color: string
-  size?: "sm" | "md" | "lg"
-  className?: string
+  color: string;
+  size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
-export function AccountAvatar({ color, size = "md", className }: AccountAvatarProps) {
+export function AccountAvatar({
+  color,
+  size = "md",
+  className,
+}: AccountAvatarProps) {
   const sizeClasses = {
-    sm: "h-8 w-8",
-    md: "h-12 w-12",
+    sm: "h-6 w-6",
+    md: "h-10 w-10",
     lg: "h-16 w-16",
-  }
+  };
 
   return (
     <div
@@ -21,5 +25,5 @@ export function AccountAvatar({ color, size = "md", className }: AccountAvatarPr
       style={{ backgroundColor: color }}
       aria-hidden="true"
     />
-  )
+  );
 }
