@@ -1,7 +1,7 @@
 "use client";
 
 import type { TokenBalance } from "@/lib/blockchain/types";
-import { formatBalance, formatUsdValue } from "@/lib/blockchain/utils";
+import { formatTokenValue, formatFiatValue } from "@/lib/blockchain/utils";
 
 interface TokenBalanceCardProps {
   tokenBalance: TokenBalance;
@@ -10,16 +10,16 @@ interface TokenBalanceCardProps {
 export function TokenBalanceCard({ tokenBalance }: TokenBalanceCardProps) {
   const { token, balance, usdValue } = tokenBalance;
 
-  const displayBalance = formatBalance(balance);
-  const displayUsdValue = formatUsdValue(usdValue);
+  const displayBalance = formatTokenValue(balance);
+  const displayUsdValue = formatFiatValue(usdValue);
 
   return (
     <div
       key={tokenBalance.token.symbol}
       className="flex flex-col gap-2 p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors skeuomorphic-card"
     >
-      <div className="flex items-left gap-3">
-        <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center overflow-hidden">
+      <div className="flex items-center justify-start gap-2">
+        <div className="h-6 w-6 rounded-full bg-background flex items-center justify-center overflow-hidden">
           <img
             src={token.logoUrl}
             alt={token.symbol}
