@@ -18,7 +18,7 @@ const tabs = [
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   return (
-    <nav className="flex items-center justify-around px-4 py-3 border-t border-border bg-card">
+    <nav className="fixed bottom-0 w-full flex items-center justify-around px-4 py-3 border-t border-border bg-card">
       {tabs.map(({ id, icon: Icon, label }) => (
         <button
           key={id}
