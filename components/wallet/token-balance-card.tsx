@@ -14,8 +14,11 @@ export function TokenBalanceCard({ tokenBalance }: TokenBalanceCardProps) {
   const displayUsdValue = formatUsdValue(usdValue);
 
   return (
-    <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors skeuomorphic-card">
-      <div className="flex items-center gap-3">
+    <div
+      key={tokenBalance.token.symbol}
+      className="flex flex-col gap-2 p-4 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors skeuomorphic-card"
+    >
+      <div className="flex items-left gap-3">
         <div className="h-10 w-10 rounded-full bg-background flex items-center justify-center overflow-hidden">
           <img
             src={token.logoUrl}
@@ -29,14 +32,17 @@ export function TokenBalanceCard({ tokenBalance }: TokenBalanceCardProps) {
             }}
           />
         </div>
-        <div className="flex flex-col">
-          <span className="font-medium">{token.symbol}</span>
+        <span className="font-medium">{token.name}</span>
+      </div>
+      <div className="flex justify-between items-end">
+        <div className="flex gap-1">
           <span className="text-sm text-muted-foreground">
             {displayBalance}
           </span>
+          <span className="text-sm text-muted-foreground">{token.symbol}</span>
         </div>
+        <span className="font-medium">{displayUsdValue}</span>
       </div>
-      <span className="font-medium">{displayUsdValue}</span>
     </div>
   );
 }
