@@ -56,6 +56,9 @@ export default defineConfig({
     }),
     new (require("@rspack/core").DefinePlugin)({
       "process.env.RPC_URL": JSON.stringify(process.env.RPC_URL),
+      "process.env.GOOGLE_CLIENT_ID": JSON.stringify(
+        process.env.GOOGLE_CLIENT_ID,
+      ),
     }),
     new (require("@rspack/core").HtmlRspackPlugin)({
       template: "./src/popup.html",

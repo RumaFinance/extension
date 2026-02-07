@@ -21,8 +21,29 @@ import {
 } from "../components/ui/tabs";
 import { useWallet } from "../contexts/wallet-context";
 import { cn } from "../lib/utils";
+import {
+  requestAccessToken,
+  getAccessToken,
+  encryptText,
+  uploadToDrive,
+  validateSeedPhrase,
+  DEFAULT_SCOPES,
+  DriveConfig,
+} from "../lib/drive";
 
-type OnboardingStep = "welcome" | "choice" | "create" | "confirm" | "import";
+type OnboardingStep =
+  | "welcome"
+  | "choice"
+  | "backup-manual"
+  | "backup-choice"
+  | "backup-drive"
+  | "confirm"
+  | "import";
+
+const driveConfig: DriveConfig = {
+  clientId: process.env.GOOGLE_CLIENT_ID || "",
+  scopes: DEFAULT_SCOPES,
+};
 
 function OnboardingFlow() {
   const { createNewAccount, importAccount, completeOnboarding } = useWallet();
@@ -58,6 +79,12 @@ function OnboardingFlow() {
   const [isLoading, setIsLoading] = useState(false);
   const [showMnemonic, setShowMnemonic] = useState(false);
 
+  // State for  backup choice
+  const [backupMnemonic, setBackupMnemonic] = useState<string | null>(null);
+  const [backupPassword, setBackupPassword] = useState("");
+  const [backupStatus, setBackupStatus] = useState<string>("");
+  const [backupIsLoading, setBackupIsLoading] = useState(false);
+
   const handleCreateNew = async () => {
     setIsLoading(true);
     try {
@@ -65,7 +92,7 @@ function OnboardingFlow() {
       setMnemonic(newMnemonic);
       setMnemonicWords(newMnemonic.split(" "));
       setCreatedAccount(account);
-      setStep("create");
+      setStep("backup-choice");
     } catch (err) {
       console.error(err);
     } finally {
@@ -207,7 +234,7 @@ function OnboardingFlow() {
           </div>
         )}
 
-        {step === "create" && mnemonic && (
+        {step === "backup-manual" && mnemonic && (
           <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-2">Your Recovery Phrase</h1>
@@ -283,16 +310,79 @@ function OnboardingFlow() {
                   </p>
                 </div>
 
-                <Button
-                  size="lg"
-                  className="w-full"
-                  onClick={() => setStep("confirm")}
+                <div className="flex flex-col gap-3">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setStep("confirm")}
+                  >
+                    I've Saved My Recovery Phrase
+                    <ChevronRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
+
+                <button
+                  onClick={() => setStep("backup-choice")}
+                  className="text-sm text-muted-foreground hover:text-foreground"
                 >
-                  I've Saved My Recovery Phrase
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                </Button>
+                  Back
+                </button>
               </>
             )}
+          </div>
+        )}
+
+        {step === "backup-choice" && createdAccount && (
+          <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-2">
+                Backup Your Recovery Phrase
+              </h1>
+              <p className="text-muted-foreground">
+                Choose how you want to backup your recovery phrase
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  // Pass mnemonic to BackupManager component
+                  setBackupMnemonic(mnemonic);
+                  setStep("backup-drive");
+                }}
+                className="flex items-center gap-4 p-4 rounded-xl bg-secondary hover:bg-secondary/80
+        transition-colors text-left"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Download className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">Backup to Google Drive</p>
+                  <p className="text-sm text-muted-foreground">
+                    Securely encrypt and backup to your Google Drive
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </button>
+
+              <button
+                onClick={() => setStep("backup-manual")}
+                className="flex items-center gap-4 p-4 rounded-xl bg-secondary hover:bg-secondary/80
+        transition-colors text-left"
+              >
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Eye className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">Backup Manually</p>
+                  <p className="text-sm text-muted-foreground">
+                    Write down your recovery phrase securely
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              </button>
+            </div>
 
             <button
               onClick={() => setStep("choice")}
@@ -300,6 +390,166 @@ function OnboardingFlow() {
             >
               Back
             </button>
+          </div>
+        )}
+
+        {step === "backup-drive" && backupMnemonic && (
+          <div className="flex flex-col gap-6 w-full animate-in fade-in duration-300">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-2">
+                Backup to Google Drive
+              </h1>
+              <p className="text-muted-foreground">
+                Securely encrypt and backup your recovery phrase
+              </p>
+            </div>
+
+            <div className="flex justify-center mb-4">
+              <Button
+                onClick={async () => {
+                  try {
+                    setBackupIsLoading(true);
+                    await requestAccessToken(driveConfig);
+                    setBackupStatus("Connected to Google Drive!");
+                  } catch (error) {
+                    setBackupStatus(
+                      `Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    );
+                  } finally {
+                    setBackupIsLoading(false);
+                  }
+                }}
+                disabled={backupIsLoading || !!getAccessToken()}
+                className="flex items-center gap-2"
+              >
+                {getAccessToken() ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Connected
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    Connect Google Drive
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div>
+                <Label
+                  htmlFor="backup-password"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Encryption Password
+                </Label>
+                <Input
+                  id="backup-password"
+                  type="password"
+                  value={backupPassword}
+                  onChange={(e) => setBackupPassword(e.target.value)}
+                  placeholder="Enter a strong password"
+                  className="bg-secondary border-0"
+                />
+              </div>
+
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={async () => {
+                  setBackupIsLoading(true);
+                  try {
+                    // Use the BackupManager logic here
+                    const accessToken = getAccessToken();
+                    if (!accessToken) {
+                      setBackupStatus("Please connect to Google Drive first");
+                      return;
+                    }
+
+                    if (!validateSeedPhrase(backupMnemonic)) {
+                      setBackupStatus("Invalid seed phrase");
+                      return;
+                    }
+
+                    if (!backupPassword) {
+                      setBackupStatus("Please enter an encryption password");
+                      return;
+                    }
+
+                    setBackupStatus("Encrypting seed phrase...");
+
+                    // Step 1: Encrypt
+                    const encryptedData = await encryptText(
+                      backupMnemonic,
+                      backupPassword,
+                    );
+                    setBackupStatus(
+                      "Encryption complete. Uploading to Drive...",
+                    );
+
+                    // Step 2: Upload
+                    const result = await uploadToDrive(
+                      accessToken,
+                      encryptedData.blob,
+                      {
+                        name: `ruma_seed_backup_${Date.now()}.enc`,
+                        mimeType: "application/octet-stream",
+                      },
+                    );
+
+                    setBackupStatus(`Backup successful! File ID: ${result.id}`);
+
+                    // Proceed to confirmation
+                    setTimeout(() => {
+                      setStep("confirm");
+                    }, 1000);
+                  } catch (error) {
+                    setBackupStatus(
+                      `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    );
+                  } finally {
+                    setBackupIsLoading(false);
+                  }
+                }}
+                disabled={backupIsLoading || !backupPassword}
+              >
+                {backupIsLoading ? "Processing..." : "Backup to Google Drive"}
+              </Button>
+
+              <button
+                onClick={() => setStep("backup-choice")}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Back
+              </button>
+            </div>
+
+            {backupStatus && (
+              <div
+                className={cn(
+                  "p-3 rounded-xl",
+                  backupStatus.includes("successful")
+                    ? "bg-green-50/50 border border-green-200"
+                    : backupStatus.includes("Error")
+                      ? "bg-destructive/10 border border-destructive/20"
+                      : "bg-secondary",
+                )}
+              >
+                <p
+                  className={cn(
+                    "text-sm",
+                    backupStatus.includes("successful")
+                      ? "text-green-700"
+                      : backupStatus.includes("Error")
+                        ? "text-destructive"
+                        : "text-muted-foreground",
+                  )}
+                >
+                  {backupStatus}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -355,7 +605,7 @@ function OnboardingFlow() {
             </Button>
 
             <button
-              onClick={() => setStep("create")}
+              onClick={() => setStep("backup-manual")}
               className="text-sm text-muted-foreground hover:text-foreground"
             >
               Back
