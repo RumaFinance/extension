@@ -34,7 +34,6 @@ interface WalletContextType {
   accounts: Account[];
   activeAccount: Account | null;
   isPrivateMode: boolean;
-  balances: TokenBalance[];
   transactions: Transaction[];
   isLoading: boolean;
   isOnboarded: boolean;
@@ -48,7 +47,6 @@ interface WalletContextType {
     value: string,
   ) => Promise<Account>;
   updateAccountName: (accountId: string, name: string) => void;
-  refreshBalances: () => Promise<void>;
   refreshTransactions: () => Promise<void>;
   completeOnboarding: (account: Account) => void;
   signTransaction: (tx: ethers.TransactionRequest) => Promise<string>;
@@ -154,96 +152,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     initBrowserDB();
   }, []);
 
-  // Fetch real balances from mainnet and shadowwire (private mode)
-  const refreshBalances = useCallback(async () => {
-    if (!activeAccount) {
-      setBalances(
-        SUPPORTED_TOKENS.map((token) => ({
-          token,
-          balance: 0,
-          usdValue: 0,
-        })),
-      );
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Initialize balances for all supported tokens
-      const initialBalances: Record<
-        string,
-        { balance: number; usdValue: number }
-      > = {};
-      SUPPORTED_TOKENS.forEach((token) => {
-        initialBalances[token.address] = { balance: 0, usdValue: 0 };
-      });
-
-      // First fetch private balances if in private mode
-      if (state.isPrivateMode) {
-        // Private mode balances remain 0 for all tokens (for now)
-      }
-
-      // Only fetch mainnet balances if not in private mode
-      if (!state.isPrivateMode) {
-        const mainnetBalances = await getAllBalances(activeAccount.address);
-        // Update balances only for supported tokens
-        SUPPORTED_TOKENS.forEach((token) => {
-          if (token.address === ETH_TOKEN.address) {
-            initialBalances[token.address].balance = mainnetBalances.eth || 0;
-          } else if (token.address === USDC_TOKEN.address) {
-            initialBalances[token.address].balance = mainnetBalances.usdc || 0;
-          }
-        });
-      }
-
-      // Fetch prices from CoinGecko
-      let ethPrice = 0;
-      let usdcPrice = 1;
-      try {
-        const priceResponse = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=ethereum,usd-coin&vs_currencies=usd",
-          { cache: "force-cache" },
-        );
-        const prices = await priceResponse.json();
-        ethPrice = prices.ethereum?.usd || 0;
-        usdcPrice = prices["usd-coin"]?.usd || 1;
-      } catch {
-        // Price fetch failed, use defaults
-      }
-
-      // Calculate USD values and create final balances array
-      const finalBalances = SUPPORTED_TOKENS.map((token) => {
-        const balance = initialBalances[token.address].balance;
-        let usdValue = 0;
-
-        if (token.address === ETH_TOKEN.address) {
-          usdValue = balance * ethPrice;
-        } else if (token.address === USDC_TOKEN.address) {
-          usdValue = balance * usdcPrice;
-        }
-
-        return {
-          token,
-          balance,
-          usdValue,
-        };
-      });
-
-      setBalances(finalBalances);
-    } catch (error) {
-      console.error("Failed to fetch balances:", error);
-      setBalances(
-        SUPPORTED_TOKENS.map((token) => ({
-          token,
-          balance: 0,
-          usdValue: 0,
-        })),
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [activeAccount, state.isPrivateMode]);
-
   // Fetch real transactions from devnet
   const refreshTransactions = useCallback(async () => {
     if (!activeAccount || state.isPrivateMode) {
@@ -263,10 +171,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   // Refresh balances on mount and when active account changes
   useEffect(() => {
     if (state.isOnboarded) {
-      refreshBalances();
       refreshTransactions();
     }
-  }, [refreshBalances, refreshTransactions, state.isOnboarded]);
+  }, [refreshTransactions, state.isOnboarded]);
 
   const setPrivateMode = useCallback((enabled: boolean) => {
     setState((prev) => ({ ...prev, isPrivateMode: enabled }));
@@ -388,7 +295,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         accounts: state.accounts,
         activeAccount,
         isPrivateMode: state.isPrivateMode,
-        balances,
         transactions,
         isLoading,
         isOnboarded: state.isOnboarded,
@@ -397,7 +303,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         createNewAccount,
         importAccount,
         updateAccountName,
-        refreshBalances,
         refreshTransactions,
         completeOnboarding,
         signTransaction,

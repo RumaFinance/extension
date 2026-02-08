@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 
 import { WalletProvider } from "../contexts/wallet-context";
 import { ThemeProvider } from "../components/theme-provider";
+import { QueryProvider } from "../components/query-provider";
 import App from "./App";
 import "./index.css";
 
@@ -13,9 +14,11 @@ if (!container) {
 
   root.render(
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <WalletProvider>
-        <App />
-      </WalletProvider>
+      <QueryProvider>
+        <WalletProvider>
+          <App />
+        </WalletProvider>
+      </QueryProvider>
     </ThemeProvider>,
   );
 }
