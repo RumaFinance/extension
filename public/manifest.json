@@ -3,7 +3,11 @@
   "name": "Ruma Wallet",
   "version": "1.0.0",
   "description": "Privacy for your Ethereum assets",
-  "permissions": ["storage", "activeTab"],
+  "permissions": ["storage", "activeTab", "identity"],
+  "host_permissions": [
+    "https://accounts.google.com/*",
+    "https://www.googleapis.com/*"
+],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
