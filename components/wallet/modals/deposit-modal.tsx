@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/contexts/wallet-context";
-import { useTheme } from "next-themes";
 import { useBalances } from "@/hooks/use-balances";
 
 interface DepositModalProps {
@@ -25,7 +24,6 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
     address: activeAccount?.address || "",
   });
   const [copied, setCopied] = useState(false);
-  const { theme } = useTheme();
 
   const handleCopy = async () => {
     if (activeAccount) {

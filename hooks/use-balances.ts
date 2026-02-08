@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 interface useBalancesProperties {
-  address: string;
+  address: string | undefined;
 }
 
 interface useBalancesReturn {

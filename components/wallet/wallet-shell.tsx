@@ -13,9 +13,11 @@ import { DepositModal } from "./modals/deposit-modal";
 import { useWallet } from "@/contexts/wallet-context";
 import { cn } from "@/lib/utils";
 import { useThemeMode } from "@/hooks/use-theme-mode";
+import { useBalances } from "@/hooks/use-balances";
 
 export function WalletShell() {
-  const { isPrivateMode, refreshBalances } = useWallet();
+  const { isPrivateMode, activeAccount } = useWallet();
+  const { refetchBalances } = useBalances(activeAccount?.address);
   const [activeTab, setActiveTab] = useState<TabId>("home");
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [showTransfer, setShowTransfer] = useState(false);
@@ -27,13 +29,13 @@ export function WalletShell() {
   return (
     <div
       className={cn(
-        "wallet-extension flex flex-col bg-background text-foreground relative",
+        "wallet-extension h-full flex flex-col bg-background text-foreground relative",
         "border border-border shadow-2xl overflow-hidden",
       )}
     >
       <WalletHeader onSettingsClick={() => setShowSettings(true)} />
 
-      <main className="flex-1 overflow-y-auto scrollbar-hide pb-4">
+      <main className="flex-1 overflow-y-auto scrollbar-hide">
         {activeTab === "home" && (
           <HomeTab
             onAccountSelectorClick={() => setShowAccountSelector(true)}
@@ -60,7 +62,7 @@ export function WalletShell() {
       <TransferModal
         open={!isPrivateMode && showTransfer}
         onOpenChange={setShowTransfer}
-        onSuccess={refreshBalances}
+        onSuccess={refetchBalances}
       />
       <DepositModal
         open={!isPrivateMode && showDeposit}
