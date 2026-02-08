@@ -22,21 +22,43 @@ export function initGoogleAuth(config: DriveConfig): void {
  * Request access token from Google OAuth2
  * @returns Promise that resolves with the access token
  */
-export async function requestAccessToken(config: DriveConfig): Promise<string> {
+export async function requestAccessToken(driveConfig: DriveConfig): Promise<string> {
+  const CLIENT_ID = driveConfig.clientId;
+  const REDIRECT_URL = chrome.identity.getRedirectURL();
+  const SCOPES = driveConfig.scopes;
+  
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', CLIENT_ID);
+  authUrl.searchParams.set('response_type', 'token');
+  authUrl.searchParams.set('redirect_uri', REDIRECT_URL);
+  authUrl.searchParams.set('scope', SCOPES);
+
   return new Promise((resolve, reject) => {
-    const tokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: config.clientId,
-      scope: config.scopes,
-      callback: (response: any) => {
-        if (response.error) {
-          reject(new Error(`OAuth Error: ${response.error}`));
-          return;
-        }
-        accessToken = response.access_token;
-        resolve(response.access_token);
+    chrome.identity.launchWebAuthFlow(
+      {
+        url: authUrl.href,
+        interactive: true,
       },
-    });
-    tokenClient.requestAccessToken();
+      (responseUrl) => {
+        if (chrome.runtime.lastError) {
+          return reject(new Error(chrome.runtime.lastError.message));
+        }
+
+        if (!responseUrl) {
+          return reject(new Error('Auth flow cancelled or failed.'));
+        }
+
+        const url = new URL(responseUrl);
+        const hashParams = new URLSearchParams(url.hash.substring(1));
+        const token = hashParams.get('access_token');
+
+        if (token) {
+          resolve(accessToken = token);
+        } else {
+          reject(new Error('Token not found in response URL.'));
+        }
+      }
+    );
   });
 }
 
