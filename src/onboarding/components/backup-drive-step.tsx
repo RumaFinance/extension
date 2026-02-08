@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useWallet } from "@/contexts/wallet-context";
 
 const driveConfig: DriveConfig = {
   clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -67,8 +68,10 @@ export function BackupDriveStep({
       setBackupStatus(`Backup successful! File ID: ${result.id}`);
 
       // Complete onboarding
-      completeOnboarding(state.createdAccount);
-      chrome.runtime.sendMessage({ type: "CLOSE_ONBOARDING_TAB" });
+      if (state.createdAccount) {
+        completeOnboarding(state.createdAccount);
+        chrome.runtime.sendMessage({ type: "CLOSE_ONBOARDING_TAB" });
+      }
     } catch (error) {
       setBackupStatus(
         `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
